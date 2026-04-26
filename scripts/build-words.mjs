@@ -20,8 +20,9 @@ import { dirname, resolve } from 'node:path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 const SRC = resolve(ROOT, 'data/raw/quran-uthmani-tanzil.txt');
-const OUT = resolve(ROOT, 'data/words.json');
-const OUT_LITE = resolve(ROOT, 'data/words.lite.json');
+// Full dataset (with occurrences) is generated locally for inspection only;
+// it is gitignored. The PWA reads the lite version from public/.
+const OUT_FULL = resolve(ROOT, 'data/words.json');
 const OUT_PUBLIC = resolve(ROOT, 'public/words.lite.json');
 
 // Standard count of verses per surah (1..114). Sum = 6236.
@@ -124,13 +125,11 @@ async function main() {
 
   const out = Array.from(words.values());
 
-  await writeFile(OUT, JSON.stringify(out, null, 2) + '\n', 'utf8');
+  await writeFile(OUT_FULL, JSON.stringify(out, null, 2) + '\n', 'utf8');
 
   // Lite version: just { word, letterCount } for the PWA's main loop.
   const lite = out.map(({ word, letterCount }) => ({ word, letterCount }));
-  const liteJson = JSON.stringify(lite) + '\n';
-  await writeFile(OUT_LITE, liteJson, 'utf8');
-  await writeFile(OUT_PUBLIC, liteJson, 'utf8');
+  await writeFile(OUT_PUBLIC, JSON.stringify(lite) + '\n', 'utf8');
 
   // Summary
   const totalOccurrences = out.reduce((n, w) => n + w.occurence.length, 0);
@@ -142,8 +141,8 @@ async function main() {
   console.log(`unique words:         ${out.length}`);
   console.log(`total occurrences:    ${totalOccurrences}`);
   console.log(`letter-count buckets: ${lenBuckets.map(([k, v]) => `${k}:${v}`).join(' ')}`);
-  console.log(`output:               ${OUT}`);
-  console.log(`output (lite):        ${OUT_LITE}`);
+  console.log(`output (full):        ${OUT_FULL}`);
+  console.log(`output (lite):        ${OUT_PUBLIC}`);
 }
 
 main().catch(err => {
