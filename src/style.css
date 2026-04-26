@@ -99,8 +99,10 @@ body {
   cursor: pointer;
   transition: background 120ms;
 }
-.icon-btn:hover { background: var(--bg-elev); }
 .icon-btn:active { background: var(--line); }
+@media (hover: hover) {
+  .icon-btn:hover { background: var(--bg-elev); }
+}
 
 /* ---------- Main word ---------- */
 
@@ -149,7 +151,12 @@ body {
   gap: 0.75rem;
   width: 100%;
   max-width: 28rem;
-  padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+  margin: 0 auto;
+  /* iPhone home-indicator + rounded corners eat the bottom area; pad generously
+     and add side padding so buttons aren't grazed by the screen edge. */
+  padding: 0 1rem calc(2rem + env(safe-area-inset-bottom));
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
 }
 
 .btn {
@@ -171,7 +178,9 @@ body {
   user-select: none;
 }
 .btn:active { transform: scale(0.97); }
-.btn:hover { border-color: var(--accent); }
+@media (hover: hover) {
+  .btn:hover { border-color: var(--accent); }
+}
 
 .btn.miss {
   color: var(--bad);

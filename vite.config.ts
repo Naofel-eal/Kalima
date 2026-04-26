@@ -9,7 +9,15 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['fonts/AmiriQuran.woff2', 'words.lite.json', 'icon.svg'],
+      includeAssets: [
+        'fonts/AmiriQuran.woff2',
+        'words.lite.json',
+        'icon.svg',
+        'icon-192.png',
+        'icon-512.png',
+        'maskable-512.png',
+        'apple-touch-icon.png',
+      ],
       manifest: {
         name: 'Kalima — Quranic word reading practice',
         short_name: 'Kalima',
@@ -23,7 +31,10 @@ export default defineConfig({
         theme_color: '#8b6f47',
         orientation: 'portrait',
         icons: [
-          { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
+          { src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: 'maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
         ],
       },
       workbox: {
