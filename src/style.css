@@ -71,20 +71,46 @@ body {
   border-bottom: 1px solid var(--line);
 }
 
-.streak {
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  color: var(--accent-strong);
+.header-left {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.85rem;
+  font-variant-numeric: tabular-nums;
   font-size: 0.95rem;
 }
 
-.streak .progress {
-  color: var(--ink-soft);
-  font-weight: 400;
+.streak {
+  font-weight: 600;
+  color: var(--accent-strong);
 }
+
+.rating-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 600;
+  position: relative;
+}
+.tier-emoji { font-size: 1.05rem; }
+.rating-n { color: var(--ink); }
+
+.rating-delta {
+  position: absolute;
+  top: -1.1rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  font-size: 0.8rem;
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms, transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.rating-delta.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-0.4rem);
+}
+.rating-delta.up   { color: var(--good); }
+.rating-delta.down { color: var(--bad); }
 
 .icon-btn {
   background: transparent;
@@ -504,4 +530,144 @@ body {
   text-align: center;
   font-size: 0.9rem;
   line-height: 1.5;
+}
+
+/* ---------- Rating card on Stats page ---------- */
+
+.rating-card {
+  background: var(--bg-elev);
+  border-radius: 0.875rem;
+  padding: 1.1rem 1.1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.rating-card-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+}
+.rating-card-emoji {
+  font-size: 2.4rem;
+  line-height: 1;
+}
+.rating-card-text {
+  display: flex;
+  flex-direction: column;
+}
+.rating-card-tier {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.rating-card-num {
+  font-size: 1.7rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  line-height: 1.1;
+}
+.rating-card-best {
+  text-align: right;
+  font-size: 0.85rem;
+}
+.rating-card-best strong {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.tier-bar {
+  height: 0.4rem;
+  background: var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.tier-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 240ms ease;
+}
+.tier-bar-label {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Decay banner ---------- */
+
+.decay-banner {
+  background: color-mix(in srgb, var(--bad) 18%, var(--bg-elev));
+  color: var(--bad);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  transform: translateY(-100%);
+  transition: transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.decay-banner.show { transform: translateY(0); }
+
+/* ---------- Promotion overlay ---------- */
+
+.promo-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  padding: 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms;
+}
+.promo-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.promo-card {
+  background: var(--bg);
+  border-radius: 1.25rem;
+  padding: 2rem 1.5rem 1.5rem;
+  text-align: center;
+  width: min(92vw, 22rem);
+  box-shadow: var(--shadow);
+  transform: scale(0.85);
+  transition: transform 320ms cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.promo-overlay.open .promo-card { transform: scale(1); }
+
+.promo-tier-emoji {
+  font-size: 5rem;
+  line-height: 1;
+  margin-bottom: 0.6rem;
+  animation: promo-pulse 1.6s ease-in-out infinite;
+}
+@keyframes promo-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.08); }
+}
+.promo-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  margin-bottom: 0.2rem;
+}
+.promo-name {
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-bottom: 1.5rem;
+}
+.promo-continue {
+  width: 100%;
+  min-height: 3rem;
 }

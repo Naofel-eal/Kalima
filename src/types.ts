@@ -41,3 +41,16 @@ export interface DayStats {
   ms: number;            // cumulative read time
 }
 export type DailyStats = Record<string, DayStats>;
+
+// Elo-like reading rating. Goes up when reads beat expectation for the word's
+// difficulty, down when slower than expected. Decays when you stop training.
+export interface RatingState {
+  rating: number;        // current rating
+  bestRating: number;    // peak rating ever reached
+  totalReads: number;    // for provisional K
+  lastSeenDay: string;   // YYYY-MM-DD; '' if never trained
+  // Highest tier index ever shown to the user. We use this to decide whether
+  // a tier crossing is a fresh promotion (worth a celebration) vs a
+  // re-crossing after a demotion.
+  shownTier: number;
+}

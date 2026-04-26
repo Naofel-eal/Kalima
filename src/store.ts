@@ -1,4 +1,5 @@
-import type { DailyStats, Settings, StreakState, WordProgress } from './types';
+import { defaultRating } from './rating';
+import type { DailyStats, RatingState, Settings, StreakState, WordProgress } from './types';
 
 // Two persistence layers:
 //   - localStorage for small things (settings, streak, daily aggregates):
@@ -9,6 +10,7 @@ import type { DailyStats, Settings, StreakState, WordProgress } from './types';
 const LS_SETTINGS = 'kalima:settings';
 const LS_STREAK = 'kalima:streak';
 const LS_DAILY = 'kalima:daily';
+const LS_RATING = 'kalima:rating';
 const DB_NAME = 'kalima';
 const DB_VERSION = 1;
 const STORE_PROGRESS = 'progress';
@@ -73,6 +75,24 @@ export function saveDailyStats(s: DailyStats) {
 
 export function clearDailyStats() {
   localStorage.removeItem(LS_DAILY);
+}
+
+export function loadRating(): RatingState {
+  try {
+    const raw = localStorage.getItem(LS_RATING);
+    if (!raw) return defaultRating();
+    return { ...defaultRating(), ...JSON.parse(raw) };
+  } catch {
+    return defaultRating();
+  }
+}
+
+export function saveRating(r: RatingState) {
+  localStorage.setItem(LS_RATING, JSON.stringify(r));
+}
+
+export function clearRating() {
+  localStorage.removeItem(LS_RATING);
 }
 
 // ---------- IndexedDB ----------

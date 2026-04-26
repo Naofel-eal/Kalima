@@ -2,12 +2,15 @@ import {
   DEFAULT_SETTINGS,
   clearDailyStats,
   clearProgress,
+  clearRating,
   loadAllProgress,
   loadDailyStats,
+  loadRating,
   loadSettings,
   loadStreak,
   saveDailyStats,
   saveProgress,
+  saveRating,
   saveSettings,
   saveStreak,
 } from './store';
@@ -24,19 +27,31 @@ import {
   todayKey,
   trainingDays,
 } from './stats';
+import {
+  applyDecay,
+  applyRead,
+  defaultRating,
+  TIERS,
+  tierFor,
+  tierIndexFor,
+  tierProgress,
+} from './rating';
 import { tickStreak } from './streak';
 import { ensureVoices, hasArabicVoice, speak, ttsAvailable } from './tts';
-import type { DailyStats, Settings, StreakState, Word, WordProgress } from './types';
+import type { DailyStats, RatingState, Settings, StreakState, Word, WordProgress } from './types';
 
 interface AppState {
   idx: IndexedWords;
   progress: Map<number, WordProgress>;
   daily: DailyStats;
+  rating: RatingState;
   settings: Settings;
   streak: StreakState;
   current: number | null;
   shownAt: number;        // ms epoch when the current word was displayed
   ttsOk: boolean;
+  // Pending decay info from app start, surfaced as a banner once.
+  pendingDecay: { lost: number; daysOff: number } | null;
 }
 
 export async function bootstrap(root: HTMLElement) {
@@ -59,6 +74,8 @@ export async function bootstrap(root: HTMLElement) {
     loadStreak(),
     loadDailyStats(),
   ];
+  const decayResult = applyDecay(loadRating());
+  if (decayResult.lost > 0) saveRating(decayResult.state);
 
   // Clamp settings against the dataset bounds.
   const lengths = [...idx.byLength.keys()];
@@ -72,11 +89,15 @@ export async function bootstrap(root: HTMLElement) {
     idx,
     progress,
     daily,
+    rating: decayResult.state,
     settings,
     streak,
     current: null,
     shownAt: 0,
     ttsOk: ttsAvailable() && hasArabicVoice(),
+    pendingDecay: decayResult.lost > 0
+      ? { lost: decayResult.lost, daysOff: decayResult.daysOff }
+      : null,
   };
 
   render(root, state, { minLen, maxLen });
@@ -91,12 +112,16 @@ interface Bounds { minLen: number; maxLen: number; }
 function render(root: HTMLElement, state: AppState, bounds: Bounds) {
   root.innerHTML = `
     <header class="header">
-      <div class="streak" id="streak"></div>
+      <div class="header-left">
+        <span class="streak" id="streak"></span>
+        <span class="rating-badge" id="rating-badge"></span>
+      </div>
       <div class="header-actions">
         <button class="icon-btn" id="stats-btn" aria-label="Stats">📊</button>
         <button class="icon-btn" id="settings-btn" aria-label="Settings">⚙</button>
       </div>
     </header>
+    <div class="decay-banner" id="decay-banner" hidden></div>
     <main class="stage">
       <div class="meta" id="meta"></div>
       <div class="word" id="word" lang="ar" dir="rtl"></div>
@@ -109,11 +134,15 @@ function render(root: HTMLElement, state: AppState, bounds: Bounds) {
     <div class="scrim" id="scrim"></div>
     <aside class="panel" id="panel" aria-hidden="true"></aside>
     <section class="page" id="stats-page" aria-hidden="true"></section>
+    <div class="promo-overlay" id="promo-overlay" aria-hidden="true"></div>
   `;
 
   const wordEl = root.querySelector<HTMLElement>('#word')!;
   const metaEl = root.querySelector<HTMLElement>('#meta')!;
   const streakEl = root.querySelector<HTMLElement>('#streak')!;
+  const ratingEl = root.querySelector<HTMLElement>('#rating-badge')!;
+  const decayBannerEl = root.querySelector<HTMLElement>('#decay-banner')!;
+  const promoOverlay = root.querySelector<HTMLElement>('#promo-overlay')!;
   const missBtn = root.querySelector<HTMLButtonElement>('#miss')!;
   const knowBtn = root.querySelector<HTMLButtonElement>('#know')!;
   const ttsBtn = root.querySelector<HTMLButtonElement>('#tts')!;
@@ -126,13 +155,64 @@ function render(root: HTMLElement, state: AppState, bounds: Bounds) {
   let advanceTimer: number | null = null;
 
   const renderStreak = () => {
-    const goal = state.streak.dailyGoal;
-    const today = state.streak.todayCount;
-    streakEl.innerHTML = `
-      <span title="Current streak">🔥 ${state.streak.streak}</span>
-      <span class="progress">· ${today}/${goal}</span>
+    streakEl.innerHTML = `<span title="Current streak">🔥 ${state.streak.streak}</span>`;
+  };
+
+  const renderRating = () => {
+    const t = tierFor(state.rating.rating);
+    ratingEl.innerHTML = `
+      <span class="tier-emoji" title="${t.name}" style="color:${t.color}">${t.emoji}</span>
+      <span class="rating-n" id="rating-n">${state.rating.rating}</span>
+      <span class="rating-delta" id="rating-delta"></span>
     `;
   };
+
+  // Briefly show "+N" or "-N" next to the rating after a read.
+  const flashDelta = (delta: number) => {
+    if (delta === 0) return;
+    const el = root.querySelector<HTMLElement>('#rating-delta');
+    if (!el) return;
+    el.textContent = delta > 0 ? `+${delta}` : `${delta}`;
+    el.className = `rating-delta show ${delta > 0 ? 'up' : 'down'}`;
+    window.setTimeout(() => {
+      el.className = 'rating-delta';
+      el.textContent = '';
+    }, 1100);
+  };
+
+  const showPromotion = (tierName: string, color: string, emoji: string) => {
+    promoOverlay.innerHTML = `
+      <div class="promo-card">
+        <div class="promo-tier-emoji" style="color:${color}">${emoji}</div>
+        <div class="promo-label">Promoted to</div>
+        <div class="promo-name" style="color:${color}">${tierName}</div>
+        <button class="btn promo-continue" data-action="dismiss-promo">Continue</button>
+      </div>
+    `;
+    promoOverlay.classList.add('open');
+    promoOverlay.setAttribute('aria-hidden', 'false');
+  };
+  const dismissPromo = () => {
+    promoOverlay.classList.remove('open');
+    promoOverlay.setAttribute('aria-hidden', 'true');
+  };
+  promoOverlay.addEventListener('click', e => {
+    const t = e.target as HTMLElement;
+    if (t.dataset.action === 'dismiss-promo' || t === promoOverlay) dismissPromo();
+  });
+
+  // Decay banner: shown once per app load if rating dropped while away.
+  if (state.pendingDecay) {
+    const { lost, daysOff } = state.pendingDecay;
+    decayBannerEl.textContent = `−${lost} rating after ${daysOff} day${daysOff > 1 ? 's' : ''} off`;
+    decayBannerEl.hidden = false;
+    decayBannerEl.classList.add('show');
+    window.setTimeout(() => {
+      decayBannerEl.classList.remove('show');
+      window.setTimeout(() => { decayBannerEl.hidden = true; }, 300);
+    }, 5000);
+    state.pendingDecay = null;
+  }
 
   const showCurrent = () => {
     const i = state.current;
@@ -172,6 +252,20 @@ function render(root: HTMLElement, state: AppState, bounds: Bounds) {
     const next = applyRating(state.progress.get(i), knew, Date.now());
     state.progress.set(i, next);
     saveProgress(i, next).catch(console.error);
+
+    // Elo update: only feed timed reads to keep the rating signal clean.
+    // Out-of-window reads (rage-clicks, AFK) are dropped so noise doesn't
+    // wreck the ladder.
+    const inWindow = ms >= 100 && ms <= 20_000;
+    if (inWindow) {
+      const upd = applyRead(state.rating, knew, w.letterCount, ms / w.letterCount);
+      state.rating = upd.state;
+      saveRating(state.rating);
+      renderRating();
+      flashDelta(upd.delta);
+      if (upd.promoted) showPromotion(upd.newTier.name, upd.newTier.color, upd.newTier.emoji);
+    }
+
     state.streak = tickStreak(state.streak);
     saveStreak(state.streak);
     renderStreak();
@@ -237,6 +331,7 @@ function render(root: HTMLElement, state: AppState, bounds: Bounds) {
   });
 
   renderStreak();
+  renderRating();
   advance();
 }
 
@@ -378,11 +473,13 @@ function renderSettingsPanel(
   });
 
   $('#reset').addEventListener('click', async () => {
-    if (!confirm('Reset all progress and stats?')) return;
+    if (!confirm('Reset all progress, stats and rating?')) return;
     await clearProgress();
     state.progress.clear();
     clearDailyStats();
     state.daily = {};
+    clearRating();
+    state.rating = defaultRating();
     saveSettings({ ...DEFAULT_SETTINGS });
     onChange();
     // Re-render the panel so stats update.
@@ -426,6 +523,34 @@ function renderStatsPage(page: HTMLElement, state: AppState) {
       </div>`
     : `<div class="empty">No timed reads yet. Tap “Got it” or “Missed” a few times and your daily ms/letter will appear here.</div>`;
 
+  // ----- Rating block -----
+  const r = state.rating;
+  const tier = tierFor(r.rating);
+  const tierIdx = tierIndexFor(r.rating);
+  const nextTier = TIERS[tierIdx + 1];
+  const progress = tierProgress(r.rating);
+  const progressLabel = nextTier
+    ? `${nextTier.min - r.rating} to ${nextTier.name}`
+    : 'Top tier reached';
+
+  const ratingBlock = `
+    <div class="rating-card">
+      <div class="rating-card-head">
+        <span class="rating-card-emoji" style="color:${tier.color}">${tier.emoji}</span>
+        <div class="rating-card-text">
+          <span class="rating-card-tier" style="color:${tier.color}">${tier.name}</span>
+          <span class="rating-card-num">${r.rating}</span>
+        </div>
+        <div class="rating-card-best">
+          <span class="dim">Best</span>
+          <strong>${r.bestRating}</strong>
+        </div>
+      </div>
+      <div class="tier-bar"><div class="tier-bar-fill" style="width:${progress * 100}%; background:${(nextTier ?? tier).color}"></div></div>
+      <div class="tier-bar-label">${progressLabel}</div>
+    </div>
+  `;
+
   page.innerHTML = `
     <header class="page-header">
       <button class="icon-btn" data-action="close-stats" aria-label="Back">←</button>
@@ -433,6 +558,7 @@ function renderStatsPage(page: HTMLElement, state: AppState) {
       <span class="header-spacer"></span>
     </header>
     <div class="page-body">
+      ${ratingBlock}
       <div class="kpi">
         <span class="kpi-n">${fmtMs(todayMpl)}</span>
         <span class="kpi-l">per letter — today</span>
