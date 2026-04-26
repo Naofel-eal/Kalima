@@ -1,30 +1,42 @@
 import {
   DEFAULT_SETTINGS,
+  clearDailyStats,
   clearProgress,
   loadAllProgress,
+  loadDailyStats,
   loadSettings,
   loadStreak,
+  saveDailyStats,
   saveProgress,
   saveSettings,
   saveStreak,
 } from './store';
 import {
   applyRating,
-  computeStats,
   indexWords,
   pickNext,
   type IndexedWords,
 } from './scheduler';
+import {
+  aggregateAll,
+  aggregateRange,
+  getDay,
+  lastDays,
+  recordRead,
+  todayKey,
+} from './stats';
 import { tickStreak } from './streak';
 import { ensureVoices, hasArabicVoice, speak, ttsAvailable } from './tts';
-import type { Settings, StreakState, Word, WordProgress } from './types';
+import type { DailyStats, Settings, StreakState, Word, WordProgress } from './types';
 
 interface AppState {
   idx: IndexedWords;
   progress: Map<number, WordProgress>;
+  daily: DailyStats;
   settings: Settings;
   streak: StreakState;
   current: number | null;
+  shownAt: number;        // ms epoch when the current word was displayed
   ttsOk: boolean;
 }
 
@@ -42,10 +54,11 @@ export async function bootstrap(root: HTMLElement) {
   }
 
   const idx = indexWords(words);
-  const [progress, settings, streak] = [
+  const [progress, settings, streak, daily] = [
     await loadAllProgress(),
     loadSettings(),
     loadStreak(),
+    loadDailyStats(),
   ];
 
   // Clamp settings against the dataset bounds.
@@ -59,9 +72,11 @@ export async function bootstrap(root: HTMLElement) {
   const state: AppState = {
     idx,
     progress,
+    daily,
     settings,
     streak,
     current: null,
+    shownAt: 0,
     ttsOk: ttsAvailable() && hasArabicVoice(),
   };
 
@@ -123,9 +138,8 @@ function render(root: HTMLElement, state: AppState, bounds: Bounds) {
     }
     const w = state.idx.words[i]!;
     wordEl.textContent = w.word;
-    const p = state.progress.get(i);
-    const tag = !p ? 'new' : p.bucket === 1 ? 'learning' : p.bucket === 2 ? 'familiar' : 'mastered';
-    metaEl.textContent = `${w.letterCount} letters · ${tag}`;
+    metaEl.textContent = `${w.letterCount} letters`;
+    state.shownAt = performance.now();
   };
 
   const advance = () => {
@@ -146,6 +160,10 @@ function render(root: HTMLElement, state: AppState, bounds: Bounds) {
   const rate = async (knew: boolean) => {
     if (state.current == null) return;
     const i = state.current;
+    const w = state.idx.words[i]!;
+    const ms = state.shownAt > 0 ? performance.now() - state.shownAt : 0;
+    recordRead(state.daily, w.letterCount, ms);
+    saveDailyStats(state.daily);
     const next = applyRating(state.progress.get(i), knew, Date.now());
     state.progress.set(i, next);
     saveProgress(i, next).catch(console.error);
@@ -203,16 +221,39 @@ function renderSettingsPanel(
   onChange: () => void,
 ) {
   const s = state.settings;
-  const stats = computeStats(state.idx, state.progress);
+
+  const today = getDay(state.daily, todayKey());
+  const week = aggregateRange(state.daily, 7);
+  const all = aggregateAll(state.daily);
+  const todayMpl = today.letters > 0 && today.ms > 0 ? today.ms / today.letters : null;
+  const fmtMpl = (v: number | null) => (v == null ? '—' : `${Math.round(v)} ms`);
+
+  // Bar chart of last 14 days. Bars scale to the max in the visible range so
+  // a quiet stretch still shows shape rather than collapsing to zero.
+  const bars = lastDays(state.daily, 14);
+  const peak = Math.max(1, ...bars.map(b => b.words));
+  const todayK = todayKey();
+  const chart = bars
+    .map(b => {
+      const h = (b.words / peak) * 100;
+      const cls = b.day === todayK ? ' today' : '';
+      return `<div class="bar${cls}" title="${b.day}: ${b.words} words"><div class="fill" style="height:${h}%"></div></div>`;
+    })
+    .join('');
+
   panel.innerHTML = `
-    <h2>Settings</h2>
+    <h2>Dashboard</h2>
 
     <div class="stats">
-      <div class="stat"><span class="n">${stats.fresh}</span><span class="l">Fresh</span></div>
-      <div class="stat"><span class="n">${stats.learning}</span><span class="l">Learning</span></div>
-      <div class="stat"><span class="n">${stats.familiar}</span><span class="l">Familiar</span></div>
-      <div class="stat"><span class="n">${stats.mastered}</span><span class="l">Mastered</span></div>
+      <div class="stat"><span class="n">${today.words}</span><span class="l">Today</span></div>
+      <div class="stat"><span class="n">${fmtMpl(todayMpl)}</span><span class="l">/letter today</span></div>
+      <div class="stat"><span class="n">${fmtMpl(week.msPerLetter)}</span><span class="l">/letter 7d</span></div>
+      <div class="stat"><span class="n">${fmtMpl(all.msPerLetter)}</span><span class="l">/letter all</span></div>
     </div>
+
+    <div class="chart" aria-label="Words per day, last 14 days">${chart}</div>
+
+    <h2 style="margin-top:1.25rem">Settings</h2>
 
     <div class="field">
       <div class="field-row">
@@ -341,9 +382,11 @@ function renderSettingsPanel(
   });
 
   $('#reset').addEventListener('click', async () => {
-    if (!confirm('Reset all progress?')) return;
+    if (!confirm('Reset all progress and stats?')) return;
     await clearProgress();
     state.progress.clear();
+    clearDailyStats();
+    state.daily = {};
     saveSettings({ ...DEFAULT_SETTINGS });
     onChange();
     // Re-render the panel so stats update.

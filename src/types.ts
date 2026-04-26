@@ -33,3 +33,11 @@ export interface StreakState {
   todayCount: number;    // words shown today
   dailyGoal: number;     // words per day to count for streak
 }
+
+// Per-day reading stats. Keyed by YYYY-MM-DD (local time).
+export interface DayStats {
+  words: number;
+  letters: number;
+  ms: number;            // cumulative read time
+}
+export type DailyStats = Record<string, DayStats>;

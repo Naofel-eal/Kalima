@@ -1,12 +1,14 @@
-import type { Settings, StreakState, WordProgress } from './types';
+import type { DailyStats, Settings, StreakState, WordProgress } from './types';
 
 // Two persistence layers:
-//   - localStorage for small things (settings, streak): synchronous, easy.
+//   - localStorage for small things (settings, streak, daily aggregates):
+//     synchronous, easy. Daily aggregates stay tiny (~50B/day).
 //   - IndexedDB for the per-word progress map: can grow to ~18k entries,
 //     and we want fast reads/writes without parsing a giant JSON every time.
 
 const LS_SETTINGS = 'kalima:settings';
 const LS_STREAK = 'kalima:streak';
+const LS_DAILY = 'kalima:daily';
 const DB_NAME = 'kalima';
 const DB_VERSION = 1;
 const STORE_PROGRESS = 'progress';
@@ -54,6 +56,23 @@ export function loadStreak(): StreakState {
 
 export function saveStreak(s: StreakState) {
   localStorage.setItem(LS_STREAK, JSON.stringify(s));
+}
+
+export function loadDailyStats(): DailyStats {
+  try {
+    const raw = localStorage.getItem(LS_DAILY);
+    return raw ? (JSON.parse(raw) as DailyStats) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveDailyStats(s: DailyStats) {
+  localStorage.setItem(LS_DAILY, JSON.stringify(s));
+}
+
+export function clearDailyStats() {
+  localStorage.removeItem(LS_DAILY);
 }
 
 // ---------- IndexedDB ----------

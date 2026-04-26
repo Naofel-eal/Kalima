@@ -139,22 +139,3 @@ export function applyRating(
   };
 }
 
-export interface ProgressStats {
-  total: number;
-  fresh: number;
-  learning: number;
-  familiar: number;
-  mastered: number;
-}
-
-export function computeStats(idx: IndexedWords, progress: Map<number, WordProgress>): ProgressStats {
-  let learning = 0, familiar = 0, mastered = 0;
-  for (const p of progress.values()) {
-    if (p.bucket === 1) learning++;
-    else if (p.bucket === 2) familiar++;
-    else mastered++;
-  }
-  const total = idx.words.length;
-  const fresh = total - learning - familiar - mastered;
-  return { total, fresh, learning, familiar, mastered };
-}
