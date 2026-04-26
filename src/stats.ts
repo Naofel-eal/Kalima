@@ -89,12 +89,21 @@ export function aggregateAll(stats: DailyStats): Aggregate {
   return toAggregate(acc);
 }
 
-// Last `n` days as an ordered list (oldest → newest), 0-filling absent days.
-export function lastDays(stats: DailyStats, n: number, from = new Date()): { day: string; words: number }[] {
-  const out: { day: string; words: number }[] = [];
-  for (let i = n - 1; i >= 0; i--) {
-    const k = dayOffset(from, i);
-    out.push({ day: k, words: stats[k]?.words ?? 0 });
-  }
-  return out;
+// All training days (those with at least one timed read), oldest → newest.
+// Each entry includes its computed ms/letter so callers don't recompute.
+export interface TrainingDay {
+  day: string;
+  msPerLetter: number;
+  words: number;
+}
+export function trainingDays(stats: DailyStats): TrainingDay[] {
+  return Object.keys(stats)
+    .sort()
+    .flatMap(day => {
+      const d = stats[day]!;
+      if (d.letters > 0 && d.ms > 0) {
+        return [{ day, msPerLetter: d.ms / d.letters, words: d.words }];
+      }
+      return [];
+    });
 }

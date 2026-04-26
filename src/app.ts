@@ -19,11 +19,10 @@ import {
 } from './scheduler';
 import {
   aggregateAll,
-  aggregateRange,
   getDay,
-  lastDays,
   recordRead,
   todayKey,
+  trainingDays,
 } from './stats';
 import { tickStreak } from './streak';
 import { ensureVoices, hasArabicVoice, speak, ttsAvailable } from './tts';
@@ -93,7 +92,10 @@ function render(root: HTMLElement, state: AppState, bounds: Bounds) {
   root.innerHTML = `
     <header class="header">
       <div class="streak" id="streak"></div>
-      <button class="icon-btn" id="settings-btn" aria-label="Settings">⚙</button>
+      <div class="header-actions">
+        <button class="icon-btn" id="stats-btn" aria-label="Stats">📊</button>
+        <button class="icon-btn" id="settings-btn" aria-label="Settings">⚙</button>
+      </div>
     </header>
     <main class="stage">
       <div class="meta" id="meta"></div>
@@ -106,6 +108,7 @@ function render(root: HTMLElement, state: AppState, bounds: Bounds) {
     </div>
     <div class="scrim" id="scrim"></div>
     <aside class="panel" id="panel" aria-hidden="true"></aside>
+    <section class="page" id="stats-page" aria-hidden="true"></section>
   `;
 
   const wordEl = root.querySelector<HTMLElement>('#word')!;
@@ -115,8 +118,10 @@ function render(root: HTMLElement, state: AppState, bounds: Bounds) {
   const knowBtn = root.querySelector<HTMLButtonElement>('#know')!;
   const ttsBtn = root.querySelector<HTMLButtonElement>('#tts')!;
   const settingsBtn = root.querySelector<HTMLButtonElement>('#settings-btn')!;
+  const statsBtn = root.querySelector<HTMLButtonElement>('#stats-btn')!;
   const scrim = root.querySelector<HTMLElement>('#scrim')!;
   const panel = root.querySelector<HTMLElement>('#panel')!;
+  const statsPage = root.querySelector<HTMLElement>('#stats-page')!;
 
   let advanceTimer: number | null = null;
 
@@ -180,9 +185,14 @@ function render(root: HTMLElement, state: AppState, bounds: Bounds) {
     speak(state.idx.words[state.current]!.word, state.settings.ttsRate);
   });
 
-  // Keyboard shortcuts (desktop): ← miss, → know, space TTS
+  // Keyboard shortcuts (desktop): ← miss, → know, space TTS, Esc closes overlays
   window.addEventListener('keydown', e => {
-    if (panel.classList.contains('open')) return;
+    if (e.key === 'Escape') {
+      if (panel.classList.contains('open')) closeSettings();
+      else if (statsPage.classList.contains('open')) closeStats();
+      return;
+    }
+    if (panel.classList.contains('open') || statsPage.classList.contains('open')) return;
     if (e.key === 'ArrowLeft') { e.preventDefault(); rate(false); }
     else if (e.key === 'ArrowRight') { e.preventDefault(); rate(true); }
     else if (e.key === ' ') { e.preventDefault(); ttsBtn.click(); }
@@ -210,6 +220,22 @@ function render(root: HTMLElement, state: AppState, bounds: Bounds) {
     if (t.dataset.action === 'close') closeSettings();
   });
 
+  // Stats page (full-screen overlay)
+  const openStats = () => {
+    renderStatsPage(statsPage, state);
+    statsPage.classList.add('open');
+    statsPage.setAttribute('aria-hidden', 'false');
+  };
+  const closeStats = () => {
+    statsPage.classList.remove('open');
+    statsPage.setAttribute('aria-hidden', 'true');
+  };
+  statsBtn.addEventListener('click', openStats);
+  statsPage.addEventListener('click', e => {
+    const t = e.target as HTMLElement;
+    if (t.dataset.action === 'close-stats') closeStats();
+  });
+
   renderStreak();
   advance();
 }
@@ -222,38 +248,8 @@ function renderSettingsPanel(
 ) {
   const s = state.settings;
 
-  const today = getDay(state.daily, todayKey());
-  const week = aggregateRange(state.daily, 7);
-  const all = aggregateAll(state.daily);
-  const todayMpl = today.letters > 0 && today.ms > 0 ? today.ms / today.letters : null;
-  const fmtMpl = (v: number | null) => (v == null ? '—' : `${Math.round(v)} ms`);
-
-  // Bar chart of last 14 days. Bars scale to the max in the visible range so
-  // a quiet stretch still shows shape rather than collapsing to zero.
-  const bars = lastDays(state.daily, 14);
-  const peak = Math.max(1, ...bars.map(b => b.words));
-  const todayK = todayKey();
-  const chart = bars
-    .map(b => {
-      const h = (b.words / peak) * 100;
-      const cls = b.day === todayK ? ' today' : '';
-      return `<div class="bar${cls}" title="${b.day}: ${b.words} words"><div class="fill" style="height:${h}%"></div></div>`;
-    })
-    .join('');
-
   panel.innerHTML = `
-    <h2>Dashboard</h2>
-
-    <div class="stats">
-      <div class="stat"><span class="n">${today.words}</span><span class="l">Today</span></div>
-      <div class="stat"><span class="n">${fmtMpl(todayMpl)}</span><span class="l">/letter today</span></div>
-      <div class="stat"><span class="n">${fmtMpl(week.msPerLetter)}</span><span class="l">/letter 7d</span></div>
-      <div class="stat"><span class="n">${fmtMpl(all.msPerLetter)}</span><span class="l">/letter all</span></div>
-    </div>
-
-    <div class="chart" aria-label="Words per day, last 14 days">${chart}</div>
-
-    <h2 style="margin-top:1.25rem">Settings</h2>
+    <h2>Settings</h2>
 
     <div class="field">
       <div class="field-row">
@@ -392,4 +388,61 @@ function renderSettingsPanel(
     // Re-render the panel so stats update.
     renderSettingsPanel(panel, state, bounds, onChange);
   });
+}
+
+function renderStatsPage(page: HTMLElement, state: AppState) {
+  const todayK = todayKey();
+  const today = getDay(state.daily, todayK);
+  const todayMpl = today.letters > 0 && today.ms > 0 ? today.ms / today.letters : null;
+  const all = aggregateAll(state.daily);
+  const days = trainingDays(state.daily);
+
+  const fmtMs = (v: number | null) => (v == null ? '—' : `${Math.round(v)} ms`);
+  const fmtDay = (k: string) => {
+    // Show "Apr 27" style for the chart axis title — full ISO in the tooltip.
+    const [y, m, d] = k.split('-').map(Number) as [number, number, number];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${months[m - 1]} ${d} ${y}`;
+  };
+
+  const peak = Math.max(1, ...days.map(d => d.msPerLetter));
+  const bars = days
+    .map(d => {
+      const h = (d.msPerLetter / peak) * 100;
+      const cls = d.day === todayK ? ' today' : '';
+      return `<div class="bar-large${cls}" title="${fmtDay(d.day)}: ${Math.round(d.msPerLetter)} ms/letter (${d.words} words)"><div class="fill" style="height:${h}%"></div></div>`;
+    })
+    .join('');
+
+  // Empty-state messaging tells the user what to do rather than showing a blank.
+  const chartBlock = days.length > 0
+    ? `
+      <div class="chart-scroll">
+        <div class="chart-large" style="--bar-count:${days.length}">${bars}</div>
+      </div>
+      <div class="chart-legend">
+        <span>${days.length} training day${days.length > 1 ? 's' : ''}</span>
+        <span>peak: ${Math.round(peak)} ms/letter</span>
+      </div>`
+    : `<div class="empty">No timed reads yet. Tap “Got it” or “Missed” a few times and your daily ms/letter will appear here.</div>`;
+
+  page.innerHTML = `
+    <header class="page-header">
+      <button class="icon-btn" data-action="close-stats" aria-label="Back">←</button>
+      <h1>Stats</h1>
+      <span class="header-spacer"></span>
+    </header>
+    <div class="page-body">
+      <div class="kpi">
+        <span class="kpi-n">${fmtMs(todayMpl)}</span>
+        <span class="kpi-l">per letter — today</span>
+      </div>
+      <div class="kpi-row">
+        <div><span class="dim">Words today</span> <strong>${today.words}</strong></div>
+        <div><span class="dim">All-time avg</span> <strong>${fmtMs(all.msPerLetter)}/letter</strong></div>
+      </div>
+      <h3>ms / letter per day</h3>
+      ${chartBlock}
+    </div>
+  `;
 }
