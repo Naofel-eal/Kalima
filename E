@@ -1,0 +1,194 @@
+[
+  {
+    "name": "Makefile",
+    "path": "Makefile",
+    "sha": "3731c6f2fe970533d70f483813228716ae49dafb",
+    "size": 1139,
+    "url": "https://api.github.com/repos/luthfi/Quran/contents/Makefile?ref=master",
+    "html_url": "https://github.com/luthfi/Quran/blob/master/Makefile",
+    "git_url": "https://api.github.com/repos/luthfi/Quran/git/blobs/3731c6f2fe970533d70f483813228716ae49dafb",
+    "download_url": "https://raw.githubusercontent.com/luthfi/Quran/master/Makefile",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/luthfi/Quran/contents/Makefile?ref=master",
+      "git": "https://api.github.com/repos/luthfi/Quran/git/blobs/3731c6f2fe970533d70f483813228716ae49dafb",
+      "html": "https://github.com/luthfi/Quran/blob/master/Makefile"
+    }
+  },
+  {
+    "name": "README.md",
+    "path": "README.md",
+    "sha": "e6824da5af38f79ec911ed1ef08c68fddc67f30c",
+    "size": 2216,
+    "url": "https://api.github.com/repos/luthfi/Quran/contents/README.md?ref=master",
+    "html_url": "https://github.com/luthfi/Quran/blob/master/README.md",
+    "git_url": "https://api.github.com/repos/luthfi/Quran/git/blobs/e6824da5af38f79ec911ed1ef08c68fddc67f30c",
+    "download_url": "https://raw.githubusercontent.com/luthfi/Quran/master/README.md",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/luthfi/Quran/contents/README.md?ref=master",
+      "git": "https://api.github.com/repos/luthfi/Quran/git/blobs/e6824da5af38f79ec911ed1ef08c68fddc67f30c",
+      "html": "https://github.com/luthfi/Quran/blob/master/README.md"
+    }
+  },
+  {
+    "name": "alif_dagger.txt",
+    "path": "alif_dagger.txt",
+    "sha": "658a063d337fd24d2aa5b5d9079c83bea5064e9c",
+    "size": 732,
+    "url": "https://api.github.com/repos/luthfi/Quran/contents/alif_dagger.txt?ref=master",
+    "html_url": "https://github.com/luthfi/Quran/blob/master/alif_dagger.txt",
+    "git_url": "https://api.github.com/repos/luthfi/Quran/git/blobs/658a063d337fd24d2aa5b5d9079c83bea5064e9c",
+    "download_url": "https://raw.githubusercontent.com/luthfi/Quran/master/alif_dagger.txt",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/luthfi/Quran/contents/alif_dagger.txt?ref=master",
+      "git": "https://api.github.com/repos/luthfi/Quran/git/blobs/658a063d337fd24d2aa5b5d9079c83bea5064e9c",
+      "html": "https://github.com/luthfi/Quran/blob/master/alif_dagger.txt"
+    }
+  },
+  {
+    "name": "alif_dagger_special.txt",
+    "path": "alif_dagger_special.txt",
+    "sha": "f72f8f3fbe0d0311691464441e9c73b4dcdca8f0",
+    "size": 201,
+    "url": "https://api.github.com/repos/luthfi/Quran/contents/alif_dagger_special.txt?ref=master",
+    "html_url": "https://github.com/luthfi/Quran/blob/master/alif_dagger_special.txt",
+    "git_url": "https://api.github.com/repos/luthfi/Quran/git/blobs/f72f8f3fbe0d0311691464441e9c73b4dcdca8f0",
+    "download_url": "https://raw.githubusercontent.com/luthfi/Quran/master/alif_dagger_special.txt",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/luthfi/Quran/contents/alif_dagger_special.txt?ref=master",
+      "git": "https://api.github.com/repos/luthfi/Quran/git/blobs/f72f8f3fbe0d0311691464441e9c73b4dcdca8f0",
+      "html": "https://github.com/luthfi/Quran/blob/master/alif_dagger_special.txt"
+    }
+  },
+  {
+    "name": "bottompage.tex",
+    "path": "bottompage.tex",
+    "sha": "6caa16696e26488ee830fe5859fcbe3994daf273",
+    "size": 28,
+    "url": "https://api.github.com/repos/luthfi/Quran/contents/bottompage.tex?ref=master",
+    "html_url": "https://github.com/luthfi/Quran/blob/master/bottompage.tex",
+    "git_url": "https://api.github.com/repos/luthfi/Quran/git/blobs/6caa16696e26488ee830fe5859fcbe3994daf273",
+    "download_url": "https://raw.githubusercontent.com/luthfi/Quran/master/bottompage.tex",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/luthfi/Quran/contents/bottompage.tex?ref=master",
+      "git": "https://api.github.com/repos/luthfi/Quran/git/blobs/6caa16696e26488ee830fe5859fcbe3994daf273",
+      "html": "https://github.com/luthfi/Quran/blob/master/bottompage.tex"
+    }
+  },
+  {
+    "name": "daftarsurat.sh",
+    "path": "daftarsurat.sh",
+    "sha": "07ca422f5ed850f72e3b47bbbc6c9a9c69abfdd7",
+    "size": 1122,
+    "url": "https://api.github.com/repos/luthfi/Quran/contents/daftarsurat.sh?ref=master",
+    "html_url": "https://github.com/luthfi/Quran/blob/master/daftarsurat.sh",
+    "git_url": "https://api.github.com/repos/luthfi/Quran/git/blobs/07ca422f5ed850f72e3b47bbbc6c9a9c69abfdd7",
+    "download_url": "https://raw.githubusercontent.com/luthfi/Quran/master/daftarsurat.sh",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/luthfi/Quran/contents/daftarsurat.sh?ref=master",
+      "git": "https://api.github.com/repos/luthfi/Quran/git/blobs/07ca422f5ed850f72e3b47bbbc6c9a9c69abfdd7",
+      "html": "https://github.com/luthfi/Quran/blob/master/daftarsurat.sh"
+    }
+  },
+  {
+    "name": "kitab.sh",
+    "path": "kitab.sh",
+    "sha": "c03e480ef148d2da7a53eaffbb916094ddc9edb7",
+    "size": 1242,
+    "url": "https://api.github.com/repos/luthfi/Quran/contents/kitab.sh?ref=master",
+    "html_url": "https://github.com/luthfi/Quran/blob/master/kitab.sh",
+    "git_url": "https://api.github.com/repos/luthfi/Quran/git/blobs/c03e480ef148d2da7a53eaffbb916094ddc9edb7",
+    "download_url": "https://raw.githubusercontent.com/luthfi/Quran/master/kitab.sh",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/luthfi/Quran/contents/kitab.sh?ref=master",
+      "git": "https://api.github.com/repos/luthfi/Quran/git/blobs/c03e480ef148d2da7a53eaffbb916094ddc9edb7",
+      "html": "https://github.com/luthfi/Quran/blob/master/kitab.sh"
+    }
+  },
+  {
+    "name": "line2ayat.sh",
+    "path": "line2ayat.sh",
+    "sha": "5c567e8405460db537b4fe2144e0c002c17cbfc0",
+    "size": 390,
+    "url": "https://api.github.com/repos/luthfi/Quran/contents/line2ayat.sh?ref=master",
+    "html_url": "https://github.com/luthfi/Quran/blob/master/line2ayat.sh",
+    "git_url": "https://api.github.com/repos/luthfi/Quran/git/blobs/5c567e8405460db537b4fe2144e0c002c17cbfc0",
+    "download_url": "https://raw.githubusercontent.com/luthfi/Quran/master/line2ayat.sh",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/luthfi/Quran/contents/line2ayat.sh?ref=master",
+      "git": "https://api.github.com/repos/luthfi/Quran/git/blobs/5c567e8405460db537b4fe2144e0c002c17cbfc0",
+      "html": "https://github.com/luthfi/Quran/blob/master/line2ayat.sh"
+    }
+  },
+  {
+    "name": "mod-alqalam",
+    "path": "mod-alqalam",
+    "sha": "a6a181ea50d382a8789cbeb019e07aacf922e212",
+    "size": 0,
+    "url": "https://api.github.com/repos/luthfi/Quran/contents/mod-alqalam?ref=master",
+    "html_url": "https://github.com/luthfi/Quran/tree/master/mod-alqalam",
+    "git_url": "https://api.github.com/repos/luthfi/Quran/git/trees/a6a181ea50d382a8789cbeb019e07aacf922e212",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/luthfi/Quran/contents/mod-alqalam?ref=master",
+      "git": "https://api.github.com/repos/luthfi/Quran/git/trees/a6a181ea50d382a8789cbeb019e07aacf922e212",
+      "html": "https://github.com/luthfi/Quran/tree/master/mod-alqalam"
+    }
+  },
+  {
+    "name": "tanzil_quran.txt",
+    "path": "tanzil_quran.txt",
+    "sha": "90d33e2f44b17c24d471a2babaf292bf6242d32d",
+    "size": 1360502,
+    "url": "https://api.github.com/repos/luthfi/Quran/contents/tanzil_quran.txt?ref=master",
+    "html_url": "https://github.com/luthfi/Quran/blob/master/tanzil_quran.txt",
+    "git_url": "https://api.github.com/repos/luthfi/Quran/git/blobs/90d33e2f44b17c24d471a2babaf292bf6242d32d",
+    "download_url": "https://raw.githubusercontent.com/luthfi/Quran/master/tanzil_quran.txt",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/luthfi/Quran/contents/tanzil_quran.txt?ref=master",
+      "git": "https://api.github.com/repos/luthfi/Quran/git/blobs/90d33e2f44b17c24d471a2babaf292bf6242d32d",
+      "html": "https://github.com/luthfi/Quran/blob/master/tanzil_quran.txt"
+    }
+  },
+  {
+    "name": "toppage.tex",
+    "path": "toppage.tex",
+    "sha": "a7a67a4920c6689a17eea2d541895bad497add6a",
+    "size": 783,
+    "url": "https://api.github.com/repos/luthfi/Quran/contents/toppage.tex?ref=master",
+    "html_url": "https://github.com/luthfi/Quran/blob/master/toppage.tex",
+    "git_url": "https://api.github.com/repos/luthfi/Quran/git/blobs/a7a67a4920c6689a17eea2d541895bad497add6a",
+    "download_url": "https://raw.githubusercontent.com/luthfi/Quran/master/toppage.tex",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/luthfi/Quran/contents/toppage.tex?ref=master",
+      "git": "https://api.github.com/repos/luthfi/Quran/git/blobs/a7a67a4920c6689a17eea2d541895bad497add6a",
+      "html": "https://github.com/luthfi/Quran/blob/master/toppage.tex"
+    }
+  },
+  {
+    "name": "transformer.sh",
+    "path": "transformer.sh",
+    "sha": "a4dd8a2fa3e224c975a7f9a0e7aa0642b66eaa85",
+    "size": 6265,
+    "url": "https://api.github.com/repos/luthfi/Quran/contents/transformer.sh?ref=master",
+    "html_url": "https://github.com/luthfi/Quran/blob/master/transformer.sh",
+    "git_url": "https://api.github.com/repos/luthfi/Quran/git/blobs/a4dd8a2fa3e224c975a7f9a0e7aa0642b66eaa85",
+    "download_url": "https://raw.githubusercontent.com/luthfi/Quran/master/transformer.sh",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/luthfi/Quran/contents/transformer.sh?ref=master",
+      "git": "https://api.github.com/repos/luthfi/Quran/git/blobs/a4dd8a2fa3e224c975a7f9a0e7aa0642b66eaa85",
+      "html": "https://github.com/luthfi/Quran/blob/master/transformer.sh"
+    }
+  }
+]
