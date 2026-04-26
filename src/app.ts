@@ -29,7 +29,7 @@ interface AppState {
 }
 
 export async function bootstrap(root: HTMLElement) {
-  root.innerHTML = `<div class="center-msg">Chargement…</div>`;
+  root.innerHTML = `<div class="center-msg">Loading…</div>`;
 
   let words: Word[];
   try {
@@ -37,7 +37,7 @@ export async function bootstrap(root: HTMLElement) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     words = await res.json();
   } catch (err) {
-    root.innerHTML = `<div class="center-msg">Erreur de chargement du dictionnaire.<br>${(err as Error).message}</div>`;
+    root.innerHTML = `<div class="center-msg">Failed to load the dictionary.<br>${(err as Error).message}</div>`;
     return;
   }
 
@@ -78,16 +78,16 @@ function render(root: HTMLElement, state: AppState, bounds: Bounds) {
   root.innerHTML = `
     <header class="header">
       <div class="streak" id="streak"></div>
-      <button class="icon-btn" id="settings-btn" aria-label="Réglages">⚙</button>
+      <button class="icon-btn" id="settings-btn" aria-label="Settings">⚙</button>
     </header>
     <main class="stage">
       <div class="meta" id="meta"></div>
       <div class="word" id="word" lang="ar" dir="rtl"></div>
     </main>
     <div class="actions">
-      <button class="btn miss" id="miss">Pas su</button>
-      <button class="btn tts ${state.ttsOk ? '' : 'disabled'}" id="tts" aria-label="Écouter">🔊</button>
-      <button class="btn know" id="know">Su</button>
+      <button class="btn miss" id="miss">Missed</button>
+      <button class="btn tts ${state.ttsOk ? '' : 'disabled'}" id="tts" aria-label="Listen">🔊</button>
+      <button class="btn know" id="know">Got it</button>
     </div>
     <div class="scrim" id="scrim"></div>
     <aside class="panel" id="panel" aria-hidden="true"></aside>
@@ -109,7 +109,7 @@ function render(root: HTMLElement, state: AppState, bounds: Bounds) {
     const goal = state.streak.dailyGoal;
     const today = state.streak.todayCount;
     streakEl.innerHTML = `
-      <span title="Série en cours">🔥 ${state.streak.streak}</span>
+      <span title="Current streak">🔥 ${state.streak.streak}</span>
       <span class="progress">· ${today}/${goal}</span>
     `;
   };
@@ -118,14 +118,14 @@ function render(root: HTMLElement, state: AppState, bounds: Bounds) {
     const i = state.current;
     if (i == null) {
       wordEl.textContent = '—';
-      metaEl.textContent = 'Aucun mot dans la plage choisie.';
+      metaEl.textContent = 'No words match the selected range.';
       return;
     }
     const w = state.idx.words[i]!;
     wordEl.textContent = w.word;
     const p = state.progress.get(i);
-    const tag = !p ? 'nouveau' : p.bucket === 1 ? 'apprentissage' : p.bucket === 2 ? 'familier' : 'maîtrisé';
-    metaEl.textContent = `${w.letterCount} lettres · ${tag}`;
+    const tag = !p ? 'new' : p.bucket === 1 ? 'learning' : p.bucket === 2 ? 'familiar' : 'mastered';
+    metaEl.textContent = `${w.letterCount} letters · ${tag}`;
   };
 
   const advance = () => {
@@ -205,18 +205,18 @@ function renderSettingsPanel(
   const s = state.settings;
   const stats = computeStats(state.idx, state.progress);
   panel.innerHTML = `
-    <h2>Réglages</h2>
+    <h2>Settings</h2>
 
     <div class="stats">
-      <div class="stat"><span class="n">${stats.fresh}</span><span class="l">Inédits</span></div>
-      <div class="stat"><span class="n">${stats.learning}</span><span class="l">Appris</span></div>
-      <div class="stat"><span class="n">${stats.familiar}</span><span class="l">Familiers</span></div>
-      <div class="stat"><span class="n">${stats.mastered}</span><span class="l">Maîtrisés</span></div>
+      <div class="stat"><span class="n">${stats.fresh}</span><span class="l">Fresh</span></div>
+      <div class="stat"><span class="n">${stats.learning}</span><span class="l">Learning</span></div>
+      <div class="stat"><span class="n">${stats.familiar}</span><span class="l">Familiar</span></div>
+      <div class="stat"><span class="n">${stats.mastered}</span><span class="l">Mastered</span></div>
     </div>
 
     <div class="field">
       <div class="field-row">
-        <label for="minLet">Lettres min</label>
+        <label for="minLet">Min letters</label>
         <input type="number" id="minLet" min="${bounds.minLen}" max="${bounds.maxLen}" value="${s.minLetters}">
       </div>
       <input type="range" id="minLetR" min="${bounds.minLen}" max="${bounds.maxLen}" value="${s.minLetters}">
@@ -224,7 +224,7 @@ function renderSettingsPanel(
 
     <div class="field">
       <div class="field-row">
-        <label for="maxLet">Lettres max</label>
+        <label for="maxLet">Max letters</label>
         <input type="number" id="maxLet" min="${bounds.minLen}" max="${bounds.maxLen}" value="${s.maxLetters}">
       </div>
       <input type="range" id="maxLetR" min="${bounds.minLen}" max="${bounds.maxLen}" value="${s.maxLetters}">
@@ -232,23 +232,23 @@ function renderSettingsPanel(
 
     <div class="field">
       <div class="field-row">
-        <label for="goal">Objectif quotidien</label>
+        <label for="goal">Daily goal</label>
         <input type="number" id="goal" min="5" max="500" step="5" value="${state.streak.dailyGoal}">
       </div>
-      <span class="hint">Nombre de mots à voir par jour pour conserver la série.</span>
+      <span class="hint">Number of words to see per day to keep the streak.</span>
     </div>
 
     <div class="field">
       <div class="field-row">
-        <label for="autoTts">Lecture audio auto</label>
+        <label for="autoTts">Auto-play audio</label>
         <input type="checkbox" id="autoTts" class="toggle" ${s.autoTts ? 'checked' : ''} ${state.ttsOk ? '' : 'disabled'}>
       </div>
-      <span class="hint">${state.ttsOk ? 'Énonce le mot dès qu\'il s\'affiche.' : 'Aucune voix arabe détectée sur cet appareil.'}</span>
+      <span class="hint">${state.ttsOk ? 'Speaks the word as soon as it appears.' : 'No Arabic voice detected on this device.'}</span>
     </div>
 
     <div class="field">
       <div class="field-row">
-        <label for="ttsRate">Vitesse TTS</label>
+        <label for="ttsRate">TTS speed</label>
         <span class="hint" id="ttsRateLbl">${s.ttsRate.toFixed(2)}×</span>
       </div>
       <input type="range" id="ttsRate" min="0.5" max="1.3" step="0.05" value="${s.ttsRate}" ${state.ttsOk ? '' : 'disabled'}>
@@ -256,24 +256,24 @@ function renderSettingsPanel(
 
     <div class="field">
       <div class="field-row">
-        <label for="autoAdv">Avance auto (mode rapide)</label>
+        <label for="autoAdv">Auto-advance (speed mode)</label>
         <input type="checkbox" id="autoAdv" class="toggle" ${s.autoAdvance ? 'checked' : ''}>
       </div>
-      <span class="hint">Passe au mot suivant sans cliquer.</span>
+      <span class="hint">Move to the next word without tapping.</span>
     </div>
 
     <div class="field">
       <div class="field-row">
-        <label for="advMs">Délai avance auto</label>
+        <label for="advMs">Auto-advance delay</label>
         <span class="hint"><span id="advMsLbl">${(s.autoAdvanceMs / 1000).toFixed(1)}</span>s</span>
       </div>
       <input type="range" id="advMs" min="800" max="6000" step="100" value="${s.autoAdvanceMs}">
     </div>
 
-    <button class="danger" id="reset">Réinitialiser ma progression</button>
+    <button class="danger" id="reset">Reset my progress</button>
 
     <div class="field" style="border:none;padding-top:1rem">
-      <button class="btn" data-action="close" style="min-height:2.75rem">Fermer</button>
+      <button class="btn" data-action="close" style="min-height:2.75rem">Close</button>
     </div>
   `;
 
@@ -341,7 +341,7 @@ function renderSettingsPanel(
   });
 
   $('#reset').addEventListener('click', async () => {
-    if (!confirm('Réinitialiser toute la progression ?')) return;
+    if (!confirm('Reset all progress?')) return;
     await clearProgress();
     state.progress.clear();
     saveSettings({ ...DEFAULT_SETTINGS });

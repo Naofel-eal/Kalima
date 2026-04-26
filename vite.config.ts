@@ -11,10 +11,10 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['fonts/AmiriQuran.woff2', 'words.lite.json', 'icon.svg'],
       manifest: {
-        name: 'Kalima — entraînement de lecture',
+        name: 'Kalima — Quranic word reading practice',
         short_name: 'Kalima',
-        description: 'Entraînement quotidien à la lecture fluide des mots vocalisés du Coran.',
-        lang: 'fr',
+        description: 'Daily practice for reading vocalized Quranic words fluently.',
+        lang: 'en',
         dir: 'ltr',
         scope: BASE,
         start_url: BASE,
